@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from passlib.context import CryptContext
+import hashlib
 from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -9,18 +9,14 @@ import os
 import shutil
 from datetime import datetime
 
-# Настройка хэширования паролей
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def hash_password(password: str) -> str:
-    """Хэширует пароль"""
-    return pwd_context.hash(password)
+    """Простое хэширование пароля"""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Проверяет пароль"""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Проверка пароля"""
+    return hash_password(plain_password) == hashed_password
 
 
 app = FastAPI(title="Yummy Desserts")
