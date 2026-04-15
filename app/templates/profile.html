@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет - Yummy Desserts{% endblock %}
+
+{% block content %}
+<section class="profile">
+    <div class="container">
+        <h1 class="section-title">Личный кабинет</h1>
+        
+        <div class="profile__wrapper">
+            <!-- Левая колонка - информация о пользователе -->
+            <div class="profile__sidebar">
+                <div class="user-card">
+                    <div class="user-card__avatar">👤</div>
+                    <h3>{{ user.full_name }}</h3>
+                    <p>{{ user.email }}</p>
+                    <p>{{ user.phone if user.phone else 'Телефон не указан' }}</p>
+                    <a href="/logout" class="btn btn--outline btn--small">Выйти</a>
+                </div>
+            </div>
+            
+            <!-- Правая колонка - история заказов -->
+            <div class="profile__orders">
+                <h2>История заказов</h2>
+                <div id="ordersList" class="orders-list">
+                    <!-- Заказы будут загружены из localStorage -->
+                    <p class="loading-orders">Загрузка...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Функция для отображения заказов пользователя
+    function loadUserOrders() {
+        const userEmail = "{{ user.email }}";
+        const ordersContainer = document.getElementById('ordersList');
+        
+        // Получаем все заказы из localStorage
+        let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        
+        // Фильтруем заказы по email пользователя
+        const userOrders = allOrders.filter(order => 
+            order.customer && order.customer.email === userEmail
+        );
+        
+        if (userOrders.length === 0) {
+            ordersContainer.innerHTML = `
+                <div class="empty-orders">
+                    <p>😢 У вас пока нет заказов</p>
+                    <a href="/catalog" class="btn btn--primary">Перейти в каталог</a>
+                </div>
+            `;
+            return;
+        }
+        
+        // Отображаем заказы в обратном порядке (сначала новые)
+        userOrders.reverse().forEach(order => {
+            const orderDate = new Date(order.date).toLocaleString('ru-RU');
+            const statusText = getStatusText(order.status);
+            const statusClass = getStatusClass(order.status);
+            
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                itemsHtml += `
+                    <div class="order-item">
+                        <span>${item.name}</span>
+                        <span>${item.quantity} шт × ${item.base_price} ₽</span>
+                        <span class="order-item-total">${item.price * item.quantity} ₽</span>
+                    </div>
+                `;
+            });
+            
+            ordersContainer.innerHTML += `
+                <div class="order-card">
+                    <div class="order-card__header">
+                        <div>
+                            <span class="order-number">Заказ №${order.order_id}</span>
+                            <span class="order-date">от ${orderDate}</span>
+                        </div>
+                        <span class="order-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="order-card__items">
+                        ${itemsHtml}
+                    </div>
+                    <div class="order-card__footer">
+                        <div class="order-delivery">
+                            🚚 ${order.delivery.address}, ${order.delivery.date} ${order.delivery.time}
+                        </div>
+                        <div class="order-total">Итого: <strong>${order.total} ₽</strong></div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    function getStatusText(status) {
+        const statuses = {
+            'new': 'Новый',
+            'confirmed': 'Подтверждён',
+            'in_progress': 'Готовится',
+            'delivered': 'Доставлен',
+            'cancelled': 'Отменён'
+        };
+        return statuses[status] || 'Новый';
+    }
+    
+    function getStatusClass(status) {
+        const classes = {
+            'new': 'status-new',
+            'confirmed': 'status-confirmed',
+            'in_progress': 'status-progress',
+            'delivered': 'status-delivered',
+            'cancelled': 'status-cancelled'
+        };
+        return classes[status] || 'status-new';
+    }
+    
+    // Загружаем заказы при загрузке страницы
+    loadUserOrders();
+</script>
+
+<style>
+    .profile__wrapper {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+    }
+    
+    .user-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 100px;
+    }
+    
+    .user-card__avatar {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .user-card h3 {
+        color: #ff69b4;
+        margin-bottom: 0.5rem;
+    }
+    
+    .user-card p {
+        color: #666;
+        margin-bottom: 0.25rem;
+    }
+    
+    .profile__orders h2 {
+        color: #ff69b4;
+        margin-bottom: 1.5rem;
+    }
+    
+    .order-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .order-card__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #ffe0e0;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .order-number {
+        font-weight: 600;
+        color: #ff69b4;
+    }
+    
+    .order-date {
+        font-size: 0.875rem;
+        color: #999;
+        margin-left: 0.5rem;
+    }
+    
+    .order-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-new {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-progress {
+        background: #cfe2ff;
+        color: #004085;
+    }
+    
+    .status-delivered {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .order-card__items {
+        margin-bottom: 1rem;
+    }
+    
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f5f0eb;
+    }
+    
+    .order-item:last-child {
+        border-bottom: none;
+    }
+    
+    .order-item-total {
+        font-weight: 500;
+        color: #ff69b4;
+    }
+    
+    .order-card__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #ffe0e0;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .order-delivery {
+        font-size: 0.875rem;
+        color: #666;
+    }
+    
+    .order-total {
+        font-size: 1.125rem;
+    }
+    
+    .order-total strong {
+        color: #ff69b4;
+    }
+    
+    .empty-orders {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 20px;
+    }
+    
+    .loading-orders {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .profile__wrapper {
+            grid-template-columns: 1fr;
+        }
+        
+        .user-card {
+            position: static;
+        }
+        
+        .order-card__header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .order-card__footer {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}

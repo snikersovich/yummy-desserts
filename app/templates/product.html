@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Yummy Desserts{% endblock %}
+
+{% block content %}
+<section class="product-detail">
+    <div class="container">
+        <div class="product-detail__wrapper">
+            <!-- Левая колонка - фото -->
+            <div class="product-detail__image">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                     onerror="this.src='https://via.placeholder.com/400x300?text=🍰'">
+            </div>
+
+            <!-- Правая колонка - информация -->
+            <div class="product-detail__info">
+                <h1 class="product-detail__title">{{ product.name }}</h1>
+                <p class="product-detail__description">{{ product.description }}</p>
+
+                <div class="product-detail__price" id="priceDisplay">
+                    <span class="price-label">Цена:</span>
+                    <span class="price-value" id="currentPrice">{{ product.price }} ₽</span>
+                </div>
+
+                <!-- Выбор размера (для товаров с размерами) -->
+                {% if product.has_sizes %}
+                <div class="size-selector">
+                    <label class="size-selector__label">Количество штук:</label>
+                    <div class="size-selector__options">
+                        {% for size in product.sizes %}
+                        <button type="button" class="size-btn" data-size="{{ size }}" data-price="{{ product.price_by_size[size|string] }}">
+                            {{ size }} шт
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Форма добавления в корзину -->
+                <div class="add-to-cart-form">
+                    <div class="quantity-selector">
+                        <label for="quantity">Количество наборов:</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" max="10">
+                    </div>
+
+                    <button id="addToCartBtn" class="btn btn--primary btn--large">
+                        🛒 Добавить в корзину
+                    </button>
+                </div>
+
+                <!-- Информация о доставке -->
+                <div class="product-info">
+                    <div class="info-item">
+                        <span class="info-icon">⏱️</span>
+                        <span>Готовность: {{ product.preparation_days }} дня</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">🚚</span>
+                        <span>Доставка по городу от 300 ₽</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">✅</span>
+                        <span>Свежие ингредиенты</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    let currentSize = null;
+    let currentPrice = {{ product.price }};
+    let basePrice = {{ product.price }};
+    let priceBySize = {};
+
+    {% if product.has_sizes %}
+        {% for size, price in product.price_by_size.items() %}
+            priceBySize[{{ size }}] = {{ price }};
+        {% endfor %}
+
+        // Обработчики для кнопок размера
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Убираем активный класс у всех
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                // Добавляем активный класс текущей
+                this.classList.add('active');
+
+                const size = parseInt(this.dataset.size);
+                const price = parseInt(this.dataset.price);
+                currentSize = size;
+                currentPrice = price;
+                basePrice = price;
+
+                // Обновляем отображение цены
+                document.getElementById('currentPrice').textContent = currentPrice + ' ₽';
+
+                // Пересчитываем итоговую цену с учётом количества
+                updateTotalPrice();
+            });
+
+            // Выбираем первый размер по умолчанию
+            if (btn === document.querySelector('.size-btn')) {
+                btn.click();
+            }
+        });
+    {% endif %}
+
+    const quantityInput = document.getElementById('quantity');
+    const addToCartBtn = document.getElementById('addToCartBtn');
+
+    function updateTotalPrice() {
+        const quantity = parseInt(quantityInput.value) || 1;
+        const total = currentPrice * quantity;
+        document.getElementById('currentPrice').textContent = total + ' ₽';
+    }
+
+    quantityInput.addEventListener('input', function() {
+        if (this.value < 1) this.value = 1;
+        if (this.value > 10) this.value = 10;
+        updateTotalPrice();
+    });
+
+    addToCartBtn.addEventListener('click', function() {
+        const quantity = parseInt(quantityInput.value) || 1;
+
+        // Создаём объект товара для корзины
+        const cartItem = {
+            id: Date.now(),
+            product_id: {{ product.id }},
+            name: "{{ product.name }}",
+            base_price: currentPrice,
+            price: currentPrice * quantity,
+            quantity: quantity,
+            size: currentSize,
+            options: [],
+            inscription: null,
+            image_url: "{{ product.image_url }}"
+        };
+
+        // Получаем текущую корзину из localStorage
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart.push(cartItem);
+        localStorage.setItem('cart', JSON.stringify(cart));
+
+        // Показываем уведомление
+        if (window.showNotification) {
+            window.showNotification('✅ {{ product.name }} добавлен в корзину!', 'success');
+        } else {
+            alert('Товар добавлен в корзину!');
+        }
+
+        // Обновляем счётчик
+        if (window.updateCartCount) {
+            window.updateCartCount();
+        }
+    });
+</script>
+
+<style>
+    .product-detail__wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        padding: 2rem 0;
+    }
+
+    .product-detail__image img {
+        width: 100%;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .product-detail__title {
+        font-size: 2rem;
+        color: #5c3e2b;
+        margin-bottom: 1rem;
+    }
+
+    .product-detail__description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .product-detail__price {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #fef3e2;
+        border-radius: 8px;
+    }
+
+    .price-label {
+        font-size: 1rem;
+        color: #666;
+    }
+
+    .price-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #d4a373;
+        margin-left: 0.5rem;
+    }
+
+    .size-selector {
+        margin-bottom: 1.5rem;
+    }
+
+    .size-selector__label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .size-selector__options {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .size-btn {
+        padding: 0.5rem 1.5rem;
+        border: 2px solid #d4a373;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .size-btn:hover {
+        background: #d4a373;
+        color: white;
+    }
+
+    .size-btn.active {
+        background: #d4a373;
+        color: white;
+    }
+
+    .add-to-cart-form {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f9f9f9;
+        border-radius: 12px;
+    }
+
+    .quantity-selector {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .quantity-selector label {
+        font-weight: 500;
+    }
+
+    .quantity-selector input {
+        width: 80px;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .btn--large {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.125rem;
+    }
+
+    .product-info {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #f5f0eb;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f5f0eb;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-icon {
+        font-size: 1.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .product-detail__wrapper {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .size-selector__options {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}

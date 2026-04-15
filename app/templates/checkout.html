@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление заказа - Кондитерская лавка{% endblock %}
+
+{% block content %}
+<section class="checkout">
+    <div class="container">
+        <h1 class="section-title">Оформление заказа</h1>
+        
+        <div class="checkout__wrapper">
+            <!-- Форма заказа -->
+            <form id="checkoutForm" class="checkout__form">
+                <!-- Шаг 1: Контактные данные -->
+                <div class="form-section">
+                    <h2 class="form-section__title">1. Контактные данные</h2>
+                    
+                    <div class="form-group">
+                        <label for="name">Ваше имя *</label>
+                        <input type="text" id="name" name="name" required placeholder="Иван Иванов">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Телефон *</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="+7 (XXX) XXX-XX-XX">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="ivan@example.com">
+                        <small>На него придет подтверждение заказа</small>
+                    </div>
+                </div>
+                
+                <!-- Шаг 2: Адрес доставки -->
+                <div class="form-section">
+                    <h2 class="form-section__title">2. Адрес доставки</h2>
+                    
+                    <div class="form-group">
+                        <label for="city">Город *</label>
+                        <input type="text" id="city" name="city" required value="Благовещенск">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Улица, дом, квартира *</label>
+                        <input type="text" id="address" name="address" required placeholder="ул. Кондитерская, д. 1, кв. 5">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="entrance">Подъезд</label>
+                            <input type="text" id="entrance" name="entrance" placeholder="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="floor">Этаж</label>
+                            <input type="text" id="floor" name="floor" placeholder="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="intercom">Домофон</label>
+                            <input type="text" id="intercom" name="intercom" placeholder="123">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comment">Комментарий к адресу</label>
+                        <textarea id="comment" name="comment" rows="2" placeholder="Ориентиры, код от домофона и т.д."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Шаг 3: Дата и время доставки -->
+                <div class="form-section">
+                    <h2 class="form-section__title">3. Дата и время доставки</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="delivery_date">Дата доставки *</label>
+                            <input type="date" id="delivery_date" name="delivery_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="delivery_time">Время доставки *</label>
+                            <select id="delivery_time" name="delivery_time" required>
+                                <option value="">Выберите время</option>
+                                <option value="10:00-12:00">10:00 - 12:00</option>
+                                <option value="12:00-14:00">12:00 - 14:00</option>
+                                <option value="14:00-16:00">14:00 - 16:00</option>
+                                <option value="16:00-18:00">16:00 - 18:00</option>
+                                <option value="18:00-20:00">18:00 - 20:00</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p>⏱️ <strong>Важно:</strong> Минимальное время изготовления заказа — 1 день. 
+                        Заказы на сегодня не принимаются.</p>
+                    </div>
+                </div>
+                
+                <!-- Шаг 4: Способ оплаты -->
+                <div class="form-section">
+                    <h2 class="form-section__title">4. Способ оплаты</h2>
+                    
+                    <div class="payment-methods">
+                        <label class="payment-method">
+                            <input type="radio" name="payment" value="cash" checked>
+                            <span class="payment-method__content">
+                                <strong>Наличные курьеру</strong>
+                                <small>Оплата при получении</small>
+                            </span>
+                        </label>
+                        
+                        <label class="payment-method">
+                            <input type="radio" name="payment" value="card">
+                            <span class="payment-method__content">
+                                <strong>Банковская карта курьеру</strong>
+                                <small>Оплата при получении</small>
+                            </span>
+                        </label>
+                        
+                        <label class="payment-method">
+                            <input type="radio" name="payment" value="online">
+                            <span class="payment-method__content">
+                                <strong>Онлайн-оплата</strong>
+                                <small>Картой на сайте (скоро)</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn--primary btn--large">Подтвердить заказ</button>
+            </form>
+            
+            <!-- Боковая панель с заказом -->
+            <div class="checkout__sidebar">
+                <div class="order-summary">
+                    <h3 class="order-summary__title">Ваш заказ</h3>
+                    <div id="orderItemsList" class="order-summary__items">
+                        <!-- Сюда будет подгружаться корзина -->
+                    </div>
+                    <div class="order-summary__total">
+                        <span>Итого:</span>
+                        <strong id="orderTotal">0 ₽</strong>
+                    </div>
+                    <div class="order-summary__delivery">
+                        <span>Доставка:</span>
+                        <span>от 300 ₽</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Загружаем корзину и отображаем в боковой панели
+    function loadCartSummary() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const container = document.getElementById('orderItemsList');
+        let total = 0;
+        
+        if (cart.length === 0) {
+            container.innerHTML = '<p class="empty-cart-msg">Корзина пуста. <a href="/catalog">Вернуться в каталог</a></p>';
+            document.getElementById('orderTotal').textContent = '0 ₽';
+            return;
+        }
+        
+        let html = '';
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            html += `
+                <div class="order-item">
+                    <div class="order-item__info">
+                        <span class="order-item__name">${item.name}</span>
+                        ${item.options ? `<div class="order-item__options">${item.options.map(o => o.value).join(', ')}</div>` : ''}
+                        ${item.inscription ? `<div class="order-item__inscription">📝 "${item.inscription}"</div>` : ''}
+                    </div>
+                    <div class="order-item__details">
+                        <span class="order-item__quantity">${item.quantity} шт.</span>
+                        <span class="order-item__price">${itemTotal} ₽</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        document.getElementById('orderTotal').textContent = total + ' ₽';
+    }
+    
+    // Устанавливаем минимальную дату (завтра)
+    function setMinDate() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const year = tomorrow.getFullYear();
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const day = String(tomorrow.getDate()).padStart(2, '0');
+        
+        document.getElementById('delivery_date').min = `${year}-${month}-${day}`;
+        
+        // Ставим значение по умолчанию - завтра
+        document.getElementById('delivery_date').value = `${year}-${month}-${day}`;
+    }
+    
+    // Обработка отправки формы
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Проверяем, что корзина не пуста
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (cart.length === 0) {
+            alert('Ваша корзина пуста. Добавьте товары перед оформлением заказа.');
+            window.location.href = '/catalog';
+            return;
+        }
+        
+        // Собираем данные формы
+        const formData = {
+            order_id: 'ORD-' + Date.now(),
+            date: new Date().toISOString(),
+            customer: {
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value  // ← это важно для привязки
+            },
+
+            delivery: {
+                city: document.getElementById('city').value,
+                address: document.getElementById('address').value,
+                entrance: document.getElementById('entrance').value,
+                floor: document.getElementById('floor').value,
+                intercom: document.getElementById('intercom').value,
+                comment: document.getElementById('comment').value,
+                date: document.getElementById('delivery_date').value,
+                time: document.getElementById('delivery_time').value
+            },
+            payment: document.querySelector('input[name="payment"]:checked').value,
+            items: cart,
+            total: parseInt(document.getElementById('orderTotal').innerText)
+        };
+        
+        // Валидация обязательных полей
+        if (!formData.customer.name || !formData.customer.phone || !formData.delivery.address || !formData.delivery.date || !formData.delivery.time) {
+            alert('Пожалуйста, заполните все обязательные поля (отмечены *)');
+            return;
+        }
+        
+        // Сохраняем заказ в localStorage (имитация отправки на сервер)
+        let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        formData.status = 'new';
+        orders.push(formData);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        
+        // Очищаем корзину
+        localStorage.removeItem('cart');
+        
+        // Показываем сообщение и перенаправляем
+        alert('Заказ успешно оформлен! Номер заказа: ' + formData.order_id + '\nВ ближайшее время с вами свяжется оператор.');
+        window.location.href = '/';
+    });
+    
+    // Инициализация
+    loadCartSummary();
+    setMinDate();
+</script>
+
+<style>
+    .checkout__wrapper {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .form-section__title {
+        font-size: 1.25rem;
+        margin-bottom: 1.25rem;
+        color: #5c3e2b;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f5f0eb;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #d4a373;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    
+    .info-box {
+        background: #fef3e2;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .payment-method {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: 2px solid #f5f0eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .payment-method:hover {
+        border-color: #d4a373;
+    }
+    
+    .payment-method input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    
+    .payment-method__content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .payment-method__content small {
+        color: #666;
+        font-size: 0.75rem;
+    }
+    
+    .order-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        position: sticky;
+        top: 100px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .order-summary__title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: #5c3e2b;
+    }
+    
+    .order-summary__items {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+    }
+    
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f5f0eb;
+    }
+    
+    .order-item__name {
+        font-weight: 500;
+    }
+    
+    .order-item__options {
+        font-size: 0.75rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+    
+    .order-item__inscription {
+        font-size: 0.75rem;
+        color: #d4a373;
+        margin-top: 0.25rem;
+    }
+    
+    .order-item__details {
+        text-align: right;
+    }
+    
+    .order-item__quantity {
+        font-size: 0.875rem;
+        color: #666;
+        display: block;
+    }
+    
+    .order-item__price {
+        font-weight: 600;
+        color: #d4a373;
+    }
+    
+    .order-summary__total {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-top: 2px solid #f5f0eb;
+        font-size: 1.125rem;
+    }
+    
+    .order-summary__delivery {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #666;
+    }
+    
+    .btn--large {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.125rem;
+    }
+    
+    .empty-cart-msg {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .checkout__wrapper {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}

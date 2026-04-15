@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Uploads (фото товаров)
+app/static/uploads/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log

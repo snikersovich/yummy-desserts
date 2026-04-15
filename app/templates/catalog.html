@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Каталог - Кондитерская лавка{% endblock %}
+
+{% block content %}
+<section class="catalog">
+    <div class="container">
+        <h1 class="section-title">Наши десерты</h1>
+        
+        <div class="catalog__wrapper">
+            <!-- Боковая панель с фильтрами -->
+            <aside class="catalog__sidebar">
+                <div class="filter-section">
+                    <h3 class="filter-title">Категории</h3>
+                    <div class="filter-categories">
+                        <a href="/catalog" class="filter-link {% if not current_category %}active{% endif %}">
+                            Все товары
+                        </a>
+                        {% for cat in categories %}
+                        <a href="/catalog?category={{ cat.slug }}" 
+                           class="filter-link {% if current_category == cat.slug %}active{% endif %}">
+                            {{ cat.icon }} {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Список товаров -->
+            <div class="catalog__content">
+                {% if products %}
+                <div class="products__grid">
+                    {% for product in products %}
+                    <div class="product-card">
+                        <div class="product-card__image">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}" 
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=Торт'">
+                            {% if not product.in_stock %}
+                            <span class="product-card__badge">Нет в наличии</span>
+                            {% endif %}
+                        </div>
+                        <div class="product-card__content">
+                            <h3 class="product-card__title">{{ product.name }}</h3>
+                            <p class="product-card__description">{{ product.description }}</p>
+                            <div class="product-card__footer">
+                                <span class="product-card__price">{{ product.price }} ₽</span>
+                                {% if product.in_stock %}
+                                <a href="/product/{{ product.id }}" class="btn btn--small">Выбрать</a>
+                                {% else %}
+                                <button class="btn btn--small btn--disabled" disabled>Нет в наличии</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>😢 В этой категории пока нет товаров</p>
+                    <a href="/catalog" class="btn btn--primary">Смотреть все товары</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

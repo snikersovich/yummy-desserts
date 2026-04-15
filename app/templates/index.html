@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Кондитерская лавка{% endblock %}
+
+{% block content %}
+<!-- Герой-секция -->
+<section class="hero">
+    <div class="container">
+        <div class="hero__inner">
+            <h1 class="hero__title">Вкусные десерты на заказ</h1>
+            <p class="hero__subtitle">Торты, пирожные, капкейки и не только. Создайте свой идеальный десерт вместе с нами!</p>
+            <a href="/catalog" class="btn btn--primary">Смотреть каталог</a>
+        </div>
+    </div>
+</section>
+
+<!-- Категории -->
+<section class="categories">
+    <div class="container">
+        <h2 class="section-title">Категории</h2>
+        <div class="categories__grid">
+            {% for category in categories %}
+            <a href="/catalog?category={{ category.slug }}" class="category-card">
+                <div class="category-card__icon">{{ category.icon }}</div>
+                <h3 class="category-card__title">{{ category.name }}</h3>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Популярные товары -->
+<section class="popular">
+    <div class="container">
+        <h2 class="section-title">Популярные товары</h2>
+        <div class="products__grid">
+            {% for product in popular_products %}
+            <div class="product-card">
+                <div class="product-card__image">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                    {% if not product.in_stock %}
+                    <span class="product-card__badge">Нет в наличии</span>
+                    {% endif %}
+                </div>
+                <div class="product-card__content">
+                    <h3 class="product-card__title">{{ product.name }}</h3>
+                    <p class="product-card__description">{{ product.description }}</p>
+                    <div class="product-card__footer">
+                        <span class="product-card__price">{{ product.price }} ₽</span>
+                        {% if product.in_stock %}
+                        <a href="/product/{{ product.id }}" class="btn btn--small">Выбрать</a>
+                        {% else %}
+                        <button class="btn btn--small btn--disabled" disabled>Нет в наличии</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}О нас - Yummy Desserts{% endblock %}
+
+{% block content %}
+<section class="about">
+    <div class="container">
+        <h1 class="section-title">О нас</h1>
+        
+        <!-- О компании -->
+        <div class="about__story">
+            <h2>Наша история</h2>
+            <p>Yummy Desserts — это домашняя кондитерская, созданная с любовью к сладостям. Мы готовим десерты из натуральных ингредиентов, без консервантов и искусственных добавок. Каждое изделие — это маленькое произведение искусства, созданное специально для вас.</p>
+        </div>
+        
+        <!-- Фото десертов -->
+        <div class="about__gallery">
+            <h2>Фото десертов</h2>
+            <p>Посмотрите на разнообразие наших кондитерских изделий, созданных с любовью и мастерством.</p>
+            <div class="gallery-grid">
+                <div class="gallery-item">🍰 Трайфлы</div>
+                <div class="gallery-item">🧁 Капкейки</div>
+                <div class="gallery-item">🍥 Рулеты</div>
+                <div class="gallery-item">🍪 Печенье</div>
+                <div class="gallery-item">🍬 Макаруны</div>
+                <div class="gallery-item">🎂 Торты на заказ</div>
+            </div>
+        </div>
+        
+        <!-- Отзывы клиентов -->
+        <div class="about__reviews">
+            <h2>Отзывы клиентов</h2>
+            <p>Читайте отзывы довольных клиентов о качестве наших десертов и обслуживании.</p>
+            <div class="reviews-grid">
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-card__rating">
+                        {% for i in range(review.rating) %}⭐{% endfor %}
+                    </div>
+                    <p class="review-card__text">"{{ review.text }}"</p>
+                    <div class="review-card__author">— {{ review.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Кейсы -->
+        <div class="about__cases">
+            <h2>Кейсы по созданию десертов</h2>
+            <p>Узнайте больше о процессе создания наших кондитерских изделий и применяемых техниках.</p>
+            <div class="cases-grid">
+                <div class="case-card">
+                    <div class="case-card__icon">🎂</div>
+                    <h3>Свадебный торт</h3>
+                    <p>Трехъярусный торт с ягодной начинкой и нежным кремом</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-card__icon">🧁</div>
+                    <h3>Капкейки на праздник</h3>
+                    <p>50 капкейков с разными начинками для корпоратива</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-card__icon">🍰</div>
+                    <h3>Трайфлы на заказ</h3>
+                    <p>Набор из 30 трайфлов для дня рождения</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Преимущества -->
+        <div class="about__features">
+            <div class="feature">
+                <div class="feature__icon">🌿</div>
+                <h3>Натуральные продукты</h3>
+                <p>Используем только свежие и качественные ингредиенты</p>
+            </div>
+            <div class="feature">
+                <div class="feature__icon">👩‍🍳</div>
+                <h3>Ручная работа</h3>
+                <p>Каждый десерт готовится с душой и вниманием к деталям</p>
+            </div>
+            <div class="feature">
+                <div class="feature__icon">🚚</div>
+                <h3>Бесплатная доставка</h3>
+                <p>При заказе от 3000 ₽ доставка по городу бесплатно</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .about__story {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .about__story h2 {
+        color: #d4a373;
+        margin-bottom: 1rem;
+    }
+    
+    .about__story p {
+        color: #666;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .about__gallery,
+    .about__reviews,
+    .about__cases {
+        margin-bottom: 3rem;
+    }
+    
+    .about__gallery h2,
+    .about__reviews h2,
+    .about__cases h2 {
+        text-align: center;
+        color: #5c3e2b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .about__gallery p,
+    .about__reviews p,
+    .about__cases p {
+        text-align: center;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .gallery-item {
+        background: #fef3e2;
+        padding: 2rem;
+        text-align: center;
+        border-radius: 12px;
+        font-size: 1.25rem;
+        font-weight: 500;
+        transition: transform 0.3s;
+    }
+    
+    .gallery-item:hover {
+        transform: translateY(-5px);
+    }
+    
+    .reviews-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .review-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .review-card__rating {
+        color: #ffc107;
+        margin-bottom: 0.5rem;
+    }
+    
+    .review-card__text {
+        color: #333;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        font-style: italic;
+    }
+    
+    .review-card__author {
+        color: #d4a373;
+        font-weight: 500;
+    }
+    
+    .cases-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .case-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .case-card__icon {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .case-card h3 {
+        color: #5c3e2b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .case-card p {
+        color: #666;
+        font-size: 0.875rem;
+    }
+    
+    .about__features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        background: #fef3e2;
+        padding: 3rem;
+        border-radius: 16px;
+        margin-top: 2rem;
+    }
+    
+    .feature {
+        text-align: center;
+    }
+    
+    .feature__icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature h3 {
+        color: #5c3e2b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature p {
+        color: #666;
+        font-size: 0.875rem;
+    }
+    
+    @media (max-width: 768px) {
+        .about__features {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}

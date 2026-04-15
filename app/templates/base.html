@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Yummy{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header class="header">
+        <div class="container">
+            <div class="header__inner">
+                <div class="logo">
+                    <a href="/">🍰 Yummy</a>
+                </div>
+
+                <nav class="nav">
+                    <a href="/" class="nav__link">Главная</a>
+                    <a href="/catalog" class="nav__link">Каталог</a>
+                    <a href="/howto" class="nav__link">Как заказать</a>
+                    <a href="/about" class="nav__link">О нас</a>
+                    <a href="/cart" class="nav__link">Корзина 🛒</a>
+                    <a href="/contacts" class="nav__link">Контакты</a>
+                    <a href="/admin" class="nav__link">👑 Админ</a>
+                </nav>
+
+                <div class="header__actions">
+                    {% if request.cookies.get('user_name') %}
+                        <a href="/profile" class="btn btn--outline">{{ request.cookies.get('user_name') }} 👤</a>
+                        <a href="/logout" class="btn btn--outline">Выйти</a>
+                    {% else %}
+                        <a href="/login" class="btn btn--outline">Войти</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__inner">
+                <div class="footer__section">
+                    <h4>Кондитерская лавка "Yummy"</h4>
+                    <p>Вкусные десерты на заказ</p>
+                </div>
+                <div class="footer__section">
+                    <h4>Контакты</h4>
+                    <p>📞 8 914 062 5971</p>
+                    <p>📱 @yummydessertss</p>
+                    <p>📍 г. Благовещенск, ул. Кондитерская, д. 1</p>
+                </div>
+                <div class="footer__section">
+                    <h4>Режим работы</h4>
+                    <p>Ежедневно: 09:00 - 21:00</p>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2026 Кондитерская лавка "Yummy". Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

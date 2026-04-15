@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - Yummy Desserts{% endblock %}
+
+{% block content %}
+<section class="auth">
+    <div class="container">
+        <div class="auth__form">
+            <h1 class="section-title">Вход</h1>
+
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="/login">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="ivan@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn--primary btn--large">Войти</button>
+                <p class="auth__link">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+            </form>
+        </div>
+    </div>
+</section>
+
+<style>
+    .auth {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+    }
+
+    .auth__form {
+        max-width: 400px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .auth__link {
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .auth__link a {
+        color: #ff69b4;
+        text-decoration: none;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 0.75rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        font-size: 1rem;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #ff69b4;
+    }
+</style>
+{% endblock %}
