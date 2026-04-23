@@ -24,7 +24,7 @@
 
 - **Backend:** FastAPI, Python
 - **Frontend:** Jinja2, HTML5, CSS3, JavaScript
-- **Хранение данных:** localStorage (заказы, корзина, пользователи)
+- **Хранение данных:** PostgreSQL на docker
 - **Изображения:** загрузка через админ-панель
 
 ## 🚀 Запуск проекта
