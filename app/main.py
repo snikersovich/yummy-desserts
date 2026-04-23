@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+
 from app.database import engine, get_db
 from app import models
+from app.routers import pages, auth, products, cart, admin_products, admin_orders, api_orders
 from app.data import create_categories, create_sample_products
 
 # Создаем таблицы в БД
 models.Base.metadata.create_all(bind=engine)
-
 
 # Заполняем начальными данными
 def init_db():
@@ -32,11 +34,7 @@ def init_db():
     finally:
         db.close()
 
-
 init_db()
-
-
-from app.routers import pages, auth, products, cart, admin_products, admin_orders, orders, api_orders
 
 app = FastAPI(title="Yummy Desserts")
 
@@ -44,13 +42,11 @@ app = FastAPI(title="Yummy Desserts")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/uploads", StaticFiles(directory="app/static/uploads"), name="uploads")
 
-
 # Middleware для передачи пользователя
 @app.middleware("http")
-async def add_user_to_context(request, call_next):
+async def add_user_to_context(request: Request, call_next):
     from app.dependencies import get_current_user
     user = get_current_user(request)
-    print(f"🔍 Middleware: user = {user.email if user else None}")
     request.state.user = user
     response = await call_next(request)
     return response
@@ -62,5 +58,4 @@ app.include_router(products.router)
 app.include_router(cart.router)
 app.include_router(admin_products.router)
 app.include_router(admin_orders.router)
-app.include_router(orders.router)
 app.include_router(api_orders.router)
