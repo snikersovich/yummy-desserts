@@ -17,8 +17,7 @@
 </section>
 
 <script>
-    // Статусы заказов
-    const STATUSES = {
+    const ADMIN_STATUSES = {
         'new': { label: '🆕 Новый', class: 'status-new', next: 'confirmed' },
         'confirmed': { label: '✅ Подтверждён', class: 'status-confirmed', next: 'in_progress' },
         'in_progress': { label: '👩‍🍳 Готовится', class: 'status-progress', next: 'delivered' },
@@ -26,143 +25,107 @@
         'cancelled': { label: '❌ Отменён', class: 'status-cancelled', next: null }
     };
 
-    // Функция для отображения заказов
-    function loadOrders() {
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function loadAdminOrders() {
         const ordersContainer = document.getElementById('ordersList');
 
-        // Получаем все заказы из localStorage
-        let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+        fetch('/api/all-orders')
+            .then(response => response.json())
+            .then(orders => {
+                if (orders.length === 0) {
+                    ordersContainer.innerHTML = '<div class="empty-orders"><p>😢 Пока нет заказов</p></div>';
+                    return;
+                }
 
-        if (allOrders.length === 0) {
-            ordersContainer.innerHTML = `
-                <div class="empty-orders">
-                    <p>😢 Пока нет заказов</p>
-                </div>
-            `;
-            return;
-        }
+                ordersContainer.innerHTML = '';
+                orders.forEach(order => {
+                    const orderDate = new Date(order.order_date).toLocaleString('ru-RU');
+                    const statusInfo = ADMIN_STATUSES[order.status] || ADMIN_STATUSES['new'];
 
-        // Отображаем заказы в обратном порядке (сначала новые)
-        allOrders.reverse().forEach(order => {
-            const orderDate = new Date(order.date).toLocaleString('ru-RU');
-            const statusInfo = STATUSES[order.status] || STATUSES['new'];
+                    let itemsHtml = '';
+                    order.items.forEach(item => {
+                        itemsHtml += `
+                            <div class="order-item">
+                                <span class="order-item-name">${escapeHtml(item.product_name)}</span>
+                                <span class="order-item-qty">${item.quantity} шт</span>
+                                <span class="order-item-price">${item.product_price * item.quantity} ₽</span>
+                            </div>
+                        `;
+                    });
 
-            // Формируем список товаров
-            let itemsHtml = '';
-            order.items.forEach(item => {
-                itemsHtml += `
-                    <div class="order-item">
-                        <span class="order-item-name">${item.name}</span>
-                        <span class="order-item-qty">${item.quantity} шт</span>
-                        <span class="order-item-price">${item.price} ₽</span>
-                    </div>
-                `;
-            });
+                    let statusButtonsHtml = '';
+                    if (order.status === 'new') {
+                        statusButtonsHtml = `
+                            <button class="status-btn" onclick="updateOrderStatus(${order.id}, 'confirmed')">✅ Подтвердить</button>
+                            <button class="status-btn cancel" onclick="updateOrderStatus(${order.id}, 'cancelled')">❌ Отменить</button>
+                        `;
+                    } else if (order.status === 'confirmed') {
+                        statusButtonsHtml = `
+                            <button class="status-btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">👩‍🍳 В готовку</button>
+                            <button class="status-btn cancel" onclick="updateOrderStatus(${order.id}, 'cancelled')">❌ Отменить</button>
+                        `;
+                    } else if (order.status === 'in_progress') {
+                        statusButtonsHtml = `
+                            <button class="status-btn" onclick="updateOrderStatus(${order.id}, 'delivered')">🚚 Доставить</button>
+                        `;
+                    }
 
-            // Формируем кнопки для смены статуса
-            let statusButtonsHtml = '';
-            if (order.status === 'new') {
-                statusButtonsHtml = `
-                    <button class="status-btn" onclick="updateOrderStatus('${order.order_id}', 'confirmed')">✅ Подтвердить</button>
-                    <button class="status-btn cancel" onclick="updateOrderStatus('${order.order_id}', 'cancelled')">❌ Отменить</button>
-                `;
-            } else if (order.status === 'confirmed') {
-                statusButtonsHtml = `
-                    <button class="status-btn" onclick="updateOrderStatus('${order.order_id}', 'in_progress')">👩‍🍳 В готовку</button>
-                    <button class="status-btn cancel" onclick="updateOrderStatus('${order.order_id}', 'cancelled')">❌ Отменить</button>
-                `;
-            } else if (order.status === 'in_progress') {
-                statusButtonsHtml = `
-                    <button class="status-btn" onclick="updateOrderStatus('${order.order_id}', 'delivered')">🚚 Доставить</button>
-                `;
-            }
-
-            ordersContainer.innerHTML += `
-                <div class="order-card" data-order-id="${order.order_id}">
-                    <div class="order-card__header">
-                        <div>
-                            <span class="order-number">📦 ${order.order_id}</span>
-                            <span class="order-date">${orderDate}</span>
+                    ordersContainer.innerHTML += `
+                        <div class="order-card" data-order-id="${order.id}">
+                            <div class="order-card__header">
+                                <div>
+                                    <span class="order-number">📦 ${escapeHtml(order.order_id)}</span>
+                                    <span class="order-date">${orderDate}</span>
+                                </div>
+                                <div class="order-status ${statusInfo.class}">${statusInfo.label}</div>
+                            </div>
+                            <div class="order-card__customer">
+                                <div><strong>Клиент:</strong> ${escapeHtml(order.customer_name)}</div>
+                                <div><strong>Телефон:</strong> ${escapeHtml(order.customer_phone)}</div>
+                                <div><strong>Email:</strong> ${escapeHtml(order.customer_email || 'не указан')}</div>
+                            </div>
+                            <div class="order-card__delivery">
+                                <div><strong>📍 Адрес:</strong> ${escapeHtml(order.delivery_address)}</div>
+                                <div><strong>📅 Дата:</strong> ${order.delivery_date}</div>
+                                <div><strong>⏰ Время:</strong> ${order.delivery_time || ''}</div>
+                            </div>
+                            <div class="order-card__items">
+                                <strong>Состав заказа:</strong>
+                                ${itemsHtml}
+                            </div>
+                            <div class="order-card__footer">
+                                <div class="order-total">💰 Итого: <strong>${order.total_amount} ₽</strong></div>
+                                <div class="order-payment">💳 Оплата: ${order.payment_method === 'cash' ? 'Наличными' : 'Картой'}</div>
+                                ${statusButtonsHtml ? `<div class="order-actions">${statusButtonsHtml}</div>` : ''}
+                            </div>
                         </div>
-                        <div class="order-status ${statusInfo.class}">${statusInfo.label}</div>
-                    </div>
+                    `;
+                });
+            });
+    }
 
-                    <div class="order-card__customer">
-                        <div><strong>Клиент:</strong> ${order.customer.name}</div>
-                        <div><strong>Телефон:</strong> ${order.customer.phone}</div>
-                        <div><strong>Email:</strong> ${order.customer.email || 'не указан'}</div>
-                    </div>
-
-                    <div class="order-card__delivery">
-                        <div><strong>📍 Адрес:</strong> ${order.delivery.address}</div>
-                        <div><strong>📅 Дата:</strong> ${order.delivery.date}</div>
-                        <div><strong>⏰ Время:</strong> ${order.delivery.time}</div>
-                    </div>
-
-                    <div class="order-card__items">
-                        <strong>Состав заказа:</strong>
-                        ${itemsHtml}
-                    </div>
-
-                    <div class="order-card__footer">
-                        <div class="order-total">💰 Итого: <strong>${order.total} ₽</strong></div>
-                        <div class="order-payment">💳 Оплата: ${order.payment === 'cash' ? 'Наличными' : 'Картой'}</div>
-                        ${statusButtonsHtml ? `<div class="order-actions">${statusButtonsHtml}</div>` : ''}
-                    </div>
-                </div>
-            `;
+    function updateOrderStatus(orderId, newStatus) {
+        fetch(`/admin/order/update/${orderId}?status=${newStatus}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                if (window.showNotification) {
+                    window.showNotification('Статус заказа обновлён', 'success');
+                }
+                loadAdminOrders();
+            }
         });
     }
 
-    // Функция обновления статуса заказа
-    function updateOrderStatus(orderId, newStatus) {
-        // Получаем все заказы
-        let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-
-        // Находим и обновляем статус заказа
-        const orderIndex = allOrders.findIndex(o => o.order_id === orderId);
-        if (orderIndex !== -1) {
-            allOrders[orderIndex].status = newStatus;
-            localStorage.setItem('orders', JSON.stringify(allOrders));
-
-            // Показываем уведомление
-            const statusText = {
-                'confirmed': 'Подтверждён',
-                'in_progress': 'Передан в готовку',
-                'delivered': 'Доставлен',
-                'cancelled': 'Отменён'
-            }[newStatus] || newStatus;
-
-            showNotification(`Заказ ${orderId} ${statusText}`, 'success');
-
-            // Обновляем отображение
-            document.getElementById('ordersList').innerHTML = '';
-            loadOrders();
-        }
-    }
-
-    // Функция уведомления
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#4caf50' : '#f44336'};
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 3000);
-    }
-
-    // Загружаем заказы
-    loadOrders();
+    document.addEventListener('DOMContentLoaded', loadAdminOrders);
 </script>
 
 <style>
@@ -331,17 +294,6 @@
         text-align: center;
         padding: 3rem;
         color: #666;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
     }
 
     @media (max-width: 768px) {

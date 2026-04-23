@@ -44,3 +44,7 @@ pip install fastapi uvicorn jinja2 python-multipart python-dotenv
 
 # Запускаем
 python run.py
+
+
+Админ: admin@yummy.ru / admin123
+Пользователь: зарегистрируй нового

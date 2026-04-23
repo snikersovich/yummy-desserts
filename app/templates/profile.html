@@ -23,7 +23,6 @@
             <div class="profile__orders">
                 <h2>История заказов</h2>
                 <div id="ordersList" class="orders-list">
-                    <!-- Заказы будут загружены из localStorage -->
                     <p class="loading-orders">Загрузка...</p>
                 </div>
             </div>
@@ -32,93 +31,11 @@
 </section>
 
 <script>
-    // Функция для отображения заказов пользователя
-    function loadUserOrders() {
-        const userEmail = "{{ user.email }}";
-        const ordersContainer = document.getElementById('ordersList');
-        
-        // Получаем все заказы из localStorage
-        let allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-        
-        // Фильтруем заказы по email пользователя
-        const userOrders = allOrders.filter(order => 
-            order.customer && order.customer.email === userEmail
-        );
-        
-        if (userOrders.length === 0) {
-            ordersContainer.innerHTML = `
-                <div class="empty-orders">
-                    <p>😢 У вас пока нет заказов</p>
-                    <a href="/catalog" class="btn btn--primary">Перейти в каталог</a>
-                </div>
-            `;
-            return;
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.loadUserOrders) {
+            window.loadUserOrders();
         }
-        
-        // Отображаем заказы в обратном порядке (сначала новые)
-        userOrders.reverse().forEach(order => {
-            const orderDate = new Date(order.date).toLocaleString('ru-RU');
-            const statusText = getStatusText(order.status);
-            const statusClass = getStatusClass(order.status);
-            
-            let itemsHtml = '';
-            order.items.forEach(item => {
-                itemsHtml += `
-                    <div class="order-item">
-                        <span>${item.name}</span>
-                        <span>${item.quantity} шт × ${item.base_price} ₽</span>
-                        <span class="order-item-total">${item.price * item.quantity} ₽</span>
-                    </div>
-                `;
-            });
-            
-            ordersContainer.innerHTML += `
-                <div class="order-card">
-                    <div class="order-card__header">
-                        <div>
-                            <span class="order-number">Заказ №${order.order_id}</span>
-                            <span class="order-date">от ${orderDate}</span>
-                        </div>
-                        <span class="order-status ${statusClass}">${statusText}</span>
-                    </div>
-                    <div class="order-card__items">
-                        ${itemsHtml}
-                    </div>
-                    <div class="order-card__footer">
-                        <div class="order-delivery">
-                            🚚 ${order.delivery.address}, ${order.delivery.date} ${order.delivery.time}
-                        </div>
-                        <div class="order-total">Итого: <strong>${order.total} ₽</strong></div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-    
-    function getStatusText(status) {
-        const statuses = {
-            'new': 'Новый',
-            'confirmed': 'Подтверждён',
-            'in_progress': 'Готовится',
-            'delivered': 'Доставлен',
-            'cancelled': 'Отменён'
-        };
-        return statuses[status] || 'Новый';
-    }
-    
-    function getStatusClass(status) {
-        const classes = {
-            'new': 'status-new',
-            'confirmed': 'status-confirmed',
-            'in_progress': 'status-progress',
-            'delivered': 'status-delivered',
-            'cancelled': 'status-cancelled'
-        };
-        return classes[status] || 'status-new';
-    }
-    
-    // Загружаем заказы при загрузке страницы
-    loadUserOrders();
+    });
 </script>
 
 <style>
@@ -296,4 +213,77 @@
         }
     }
 </style>
+<script>
+    // Функция загрузки заказов
+    function loadUserOrders() {
+        console.log('🟢 loadUserOrders вызвана!');
+
+        fetch('/api/my-orders')
+            .then(response => response.json())
+            .then(orders => {
+                console.log('📦 Получены заказы:', orders);
+                const container = document.getElementById('ordersList');
+                if (!container) return;
+
+                if (orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-orders">
+                            <p>😢 У вас пока нет заказов</p>
+                            <a href="/catalog" class="btn btn--primary">Перейти в каталог</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                orders.forEach(order => {
+                    const orderDate = new Date(order.order_date).toLocaleString('ru-RU');
+                    let itemsHtml = '';
+                    order.items.forEach(item => {
+                        itemsHtml += `
+                            <div class="order-item">
+                                <span>${item.product_name}</span>
+                                <span>${item.quantity} шт × ${item.product_price} ₽</span>
+                                <span class="order-item-total">${item.product_price * item.quantity} ₽</span>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div class="order-card">
+                            <div class="order-card__header">
+                                <div>
+                                    <span class="order-number">📦 ${order.order_id}</span>
+                                    <span class="order-date">от ${orderDate}</span>
+                                </div>
+                                <span class="order-status status-${order.status}">${order.status}</span>
+                            </div>
+                            <div class="order-card__items">
+                                ${itemsHtml}
+                            </div>
+                            <div class="order-card__footer">
+                                <div class="order-delivery">
+                                    🚚 ${order.delivery_address}, ${order.delivery_date} ${order.delivery_time || ''}
+                                </div>
+                                <div class="order-total">Итого: <strong>${order.total_amount} ₽</strong></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => {
+                console.error('❌ Ошибка:', error);
+                const container = document.getElementById('ordersList');
+                if (container) {
+                    container.innerHTML = '<p class="error">Ошибка загрузки заказов</p>';
+                }
+            });
+    }
+
+    // Загружаем заказы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🟢 Страница профиля загружена');
+        loadUserOrders();
+    });
+</script>
 {% endblock %}

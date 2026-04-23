@@ -1,0 +1,16 @@
+services:
+  postgres_yummy:
+    image: postgres:15-alpine  # ← Тот образ, который у тебя уже есть
+    container_name: postgres_yummy
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: yummy_dev
+    ports:
+      - "5433:5432"  # ← порт 5433, чтобы не конфликтовать
+    volumes:
+      - postgres_yummy_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_yummy_data:

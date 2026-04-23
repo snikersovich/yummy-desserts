@@ -19,19 +19,28 @@
                 <nav class="nav">
                     <a href="/" class="nav__link">Главная</a>
                     <a href="/catalog" class="nav__link">Каталог</a>
-                    <a href="/howto" class="nav__link">Как заказать</a>
+                    <a href="/howto" class="nav__link">Заказ</a>
                     <a href="/about" class="nav__link">О нас</a>
-                    <a href="/cart" class="nav__link">Корзина 🛒</a>
+                    <a href="/cart" class="nav__link">🛒 Корзина</a>
                     <a href="/contacts" class="nav__link">Контакты</a>
-                    <a href="/admin" class="nav__link">👑 Админ</a>
+                    {% if request.state.user and request.state.user.role == 'admin' %}
+                        <a href="/admin" class="nav__link">👑 Админ</a>
+                    {% endif %}
                 </nav>
 
                 <div class="header__actions">
-                    {% if request.cookies.get('user_name') %}
-                        <a href="/profile" class="btn btn--outline">{{ request.cookies.get('user_name') }} 👤</a>
-                        <a href="/logout" class="btn btn--outline">Выйти</a>
+                    {% if request.state.user %}
+                        <div class="header__user">
+                            <span class="user-avatar">
+                                {% if request.state.user.role == 'admin' %}👑{% else %}👤{% endif %}
+                            </span>
+                            <span class="user-name">{{ request.state.user.full_name }}</span>
+                        </div>
+                        <a href="/profile" class="btn--header">Профиль</a>
+                        <a href="/logout" class="btn--logout">Выйти</a>
                     {% else %}
-                        <a href="/login" class="btn btn--outline">Войти</a>
+                        <a href="/login" class="btn--header">Войти</a>
+                        <a href="/register" class="btn--header">Регистрация</a>
                     {% endif %}
                 </div>
             </div>

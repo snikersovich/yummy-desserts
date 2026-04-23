@@ -261,6 +261,147 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// ========== ФУНКЦИИ ДЛЯ ЗАКАЗОВ ==========
+
+// Статусы заказов
+const ORDER_STATUSES = {
+    'new': { label: '🆕 Новый', class: 'status-new' },
+    'confirmed': { label: '✅ Подтверждён', class: 'status-confirmed' },
+    'in_progress': { label: '👩‍🍳 Готовится', class: 'status-progress' },
+    'delivered': { label: '🚚 Доставлен', class: 'status-delivered' },
+    'cancelled': { label: '❌ Отменён', class: 'status-cancelled' }
+};
+
+function getStatusText(status) {
+    const statuses = {
+        'new': '🆕 Новый',
+        'confirmed': '✅ Подтверждён',
+        'in_progress': '👩‍🍳 Готовится',
+        'delivered': '🚚 Доставлен',
+        'cancelled': '❌ Отменён'
+    };
+    return statuses[status] || '🆕 Новый';
+}
+
+function getStatusClass(status) {
+    const classes = {
+        'new': 'status-new',
+        'confirmed': 'status-confirmed',
+        'in_progress': 'status-progress',
+        'delivered': 'status-delivered',
+        'cancelled': 'status-cancelled'
+    };
+    return classes[status] || 'status-new';
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Загрузка заказов пользователя
+function loadUserOrders() {
+    const ordersContainer = document.getElementById('ordersList');
+    if (!ordersContainer) return;
+
+    fetch('/api/my-orders')
+        .then(response => response.json())
+        .then(orders => {
+            if (orders.length === 0) {
+                ordersContainer.innerHTML = `
+                    <div class="empty-orders">
+                        <p>😢 У вас пока нет заказов</p>
+                        <a href="/catalog" class="btn btn--primary">Перейти в каталог</a>
+                    </div>
+                `;
+                return;
+            }
+
+            ordersContainer.innerHTML = '';
+            orders.forEach(order => {
+                const orderDate = new Date(order.order_date).toLocaleString('ru-RU');
+                const statusText = getStatusText(order.status);
+                const statusClass = getStatusClass(order.status);
+
+                let itemsHtml = '';
+                order.items.forEach(item => {
+                    itemsHtml += `
+                        <div class="order-item">
+                            <span>${escapeHtml(item.product_name)}</span>
+                            <span>${item.quantity} шт × ${item.product_price} ₽</span>
+                            <span class="order-item-total">${item.product_price * item.quantity} ₽</span>
+                        </div>
+                    `;
+                });
+
+                ordersContainer.innerHTML += `
+                    <div class="order-card">
+                        <div class="order-card__header">
+                            <div>
+                                <span class="order-number">📦 ${escapeHtml(order.order_id)}</span>
+                                <span class="order-date">от ${orderDate}</span>
+                            </div>
+                            <span class="order-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="order-card__items">
+                            ${itemsHtml}
+                        </div>
+                        <div class="order-card__footer">
+                            <div class="order-delivery">
+                                🚚 ${escapeHtml(order.delivery_address)}, ${order.delivery_date} ${order.delivery_time || ''}
+                            </div>
+                            <div class="order-total">Итого: <strong>${order.total_amount} ₽</strong></div>
+                        </div>
+                    </div>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (ordersContainer) {
+                ordersContainer.innerHTML = '<p class="error">Ошибка загрузки заказов</p>';
+            }
+        });
+}
+
+// Отправка заказа на сервер
+function submitOrder(formData) {
+    fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            showNotification('✅ Заказ успешно оформлен! Номер: ' + data.order_id, 'success');
+            localStorage.removeItem('cart');
+            setTimeout(() => {
+                window.location.href = '/profile';
+            }, 1500);
+        } else {
+            showNotification('❌ Ошибка при оформлении заказа', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Ошибка при оформлении заказа', 'error');
+    });
+}
+
+// Экранирование HTML (безопасность)
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+
 // ========== Экспорт глобальных функций ==========
 window.showNotification = showNotification;
 window.updateCartCount = updateCartCount;
@@ -270,3 +411,5 @@ window.getCart = getCart;
 window.saveCart = saveCart;
 window.getCartTotal = getCartTotal;
 window.loadDemoCart = loadDemoCart;
+window.submitOrder = submitOrder;
+window.loadUserOrders = loadUserOrders;

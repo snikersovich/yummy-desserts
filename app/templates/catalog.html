@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Каталог - Кондитерская лавка{% endblock %}
+{% block title %}Каталог - Yummy Desserts{% endblock %}
 
 {% block content %}
 <section class="catalog">
     <div class="container">
         <h1 class="section-title">Наши десерты</h1>
-        
+
         <div class="catalog__wrapper">
             <!-- Боковая панель с фильтрами -->
             <aside class="catalog__sidebar">
@@ -14,18 +14,29 @@
                     <h3 class="filter-title">Категории</h3>
                     <div class="filter-categories">
                         <a href="/catalog" class="filter-link {% if not current_category %}active{% endif %}">
-                            Все товары
+                            🍰 Все товары
                         </a>
                         {% for cat in categories %}
-                        <a href="/catalog?category={{ cat.slug }}" 
+                        <a href="/catalog?category={{ cat.slug }}"
                            class="filter-link {% if current_category == cat.slug %}active{% endif %}">
                             {{ cat.icon }} {{ cat.name }}
                         </a>
                         {% endfor %}
                     </div>
                 </div>
+
+                <!-- Блок поиска -->
+                <div class="filter-section">
+                    <h3 class="filter-title">🔍 Поиск</h3>
+                    <form method="get" action="/catalog">
+                        <input type="text" name="search" placeholder="Название десерта..."
+                               value="{{ request.query_params.get('search', '') }}"
+                               class="search-input">
+                        <button type="submit" class="search-btn">Найти</button>
+                    </form>
+                </div>
             </aside>
-            
+
             <!-- Список товаров -->
             <div class="catalog__content">
                 {% if products %}
@@ -33,8 +44,8 @@
                     {% for product in products %}
                     <div class="product-card">
                         <div class="product-card__image">
-                            <img src="{{ product.image_url }}" alt="{{ product.name }}" 
-                                 onerror="this.src='https://via.placeholder.com/300x200?text=Торт'">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=🍰'">
                             {% if not product.in_stock %}
                             <span class="product-card__badge">Нет в наличии</span>
                             {% endif %}
@@ -56,8 +67,8 @@
                 </div>
                 {% else %}
                 <div class="empty-state">
-                    <p>😢 В этой категории пока нет товаров</p>
-                    <a href="/catalog" class="btn btn--primary">Смотреть все товары</a>
+                    <p>😢 Товары не найдены</p>
+                    <a href="/catalog" class="btn btn--primary">Сбросить фильтры</a>
                 </div>
                 {% endif %}
             </div>
