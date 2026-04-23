@@ -45,6 +45,16 @@ pip install fastapi uvicorn jinja2 python-multipart python-dotenv
 # Запускаем
 python run.py
 
+# 1. Сохранить свои локальные изменения (если есть)
+git stash
+
+# 2. Сбросить локальную ветку до состояния удалённой
+git fetch origin
+git reset --hard origin/master
+
+# 3. Вернуть сохранённые изменения (если были)
+git stash pop
+
 
 Админ: admin@yummy.ru / admin123
 Пользователь: зарегистрируй нового
